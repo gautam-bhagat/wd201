@@ -27,8 +27,18 @@ fs.readFile("project.html", (err, project) => {
   projectContent = project;
 });
 
-http
-  .createServer((request, response) => {
+let port = 3000
+
+const args = require("minimist")(process.argv.slice(2),{
+  default:{
+    port : 3000
+  }
+});
+
+// console.log(args);
+
+port =  args['port']
+http.createServer((request, response) => {
     let url = request.url;
     response.writeHeader(200, { "Content-Type": "text/html" });
     switch (url) {
@@ -46,4 +56,4 @@ http
         break;
     }
   })
-  .listen(3000);
+  .listen(port);
