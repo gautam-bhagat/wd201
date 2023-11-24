@@ -55,5 +55,4 @@ http.createServer((request, response) => {
         response.end();
         break;
     }
-  })
-  .listen(port);
+  }).listen(port);
