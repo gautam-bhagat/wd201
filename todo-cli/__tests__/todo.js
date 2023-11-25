@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 todo = require("../todo");
 
 const {
@@ -6,8 +7,7 @@ const {
   markAsComplete,
   overdue,
   dueToday,
-  dueLater,
-  toDisplayableList,
+  dueLater
 } = todo();
 
 const formattedDate = (d) => {
