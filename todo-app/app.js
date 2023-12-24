@@ -16,9 +16,20 @@ const path = require("path");
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", async (request, response) => {
-  const todos = await Todo.getTodos();
+  const d = new Date().toISOString().substring(0, 10);
+
+  const todos = await Todo.findAll();
+  const overdue = todos.filter((item) => {
+    return item.dueDate < d;
+  });
+  const duetoday = todos.filter((item) => {
+    return item.dueDate === d;
+  });
+  const duelater = todos.filter((item) => {
+    return item.dueDate > d;
+  });
   if (request.accepts("html")) {
-    return response.render("index", { todos });
+    return response.render("index", { todos, overdue, duetoday, duelater });
   } else {
     return response.json({ todos });
   }
@@ -52,7 +63,22 @@ app.put("/todos/:id/markAsCompleted", async (req, res) => {
 app.get("/todos", async function (_request, response) {
   console.log("Processing list of all Todos ...");
   try {
+    const d = new Date().toISOString().substring(0, 10);
+    console.log(d);
     const todos = await Todo.findAll();
+    const overdue = todos.filter((item) => {
+      return item.dueDate < d;
+    });
+    const duetoday = todos.filter((item) => {
+      return item.dueDate === d;
+    });
+    const duelater = todos.filter((item) => {
+      return item.dueDate > d;
+    });
+    console.log("OverDue", JSON.stringify(overdue));
+    console.log("DueToday", JSON.stringify(duetoday));
+    console.log("DueLater", JSON.stringify(duelater));
+
     return response.send(todos);
   } catch (error) {
     response.status(422).send(error);
