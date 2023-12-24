@@ -18,6 +18,9 @@
     "password": "FJTkpp30R7VsW4HVLcJFLtkV5SZHvq2h",
     "database": "wd_pupilfirst",
     "host": "dpg-cm41bsgcmk4c73cgk20g-a.oregon-postgres.render.com",
-    "dialect": "postgres"
+    "ssl": "true",
+    "dialectOptions": {
+      "ssl": true     
+    }
   }
 }
