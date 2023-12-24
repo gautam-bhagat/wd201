@@ -4,8 +4,7 @@
   font-family: "Poppins", monospace !important;
 }
 
-.todo-item:hover .trash-icon{
-
+.todo-item:hover .trash-icon {
   display: block;
 }
 
