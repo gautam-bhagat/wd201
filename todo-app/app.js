@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 const express = require("express");
 const app = express();
@@ -8,6 +9,20 @@ const { Todo } = require("./models");
 const bodyParser = require("body-parser");
 
 app.use(bodyParser.json());
+
+app.set("view engine", "ejs");
+
+const path = require("path");
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", async (request, response) => {
+  const todos = await Todo.getTodos();
+  if (request.accepts("html")) {
+    return response.render("index", { todos });
+  } else {
+    return response.json({ todos });
+  }
+});
 
 app.post("/todos", async (req, res) => {
   try {
@@ -32,10 +47,6 @@ app.put("/todos/:id/markAsCompleted", async (req, res) => {
   } catch (error) {
     return res.status(422);
   }
-});
-
-app.get("/", function (request, response) {
-  response.send("Hello World");
 });
 
 app.get("/todos", async function (_request, response) {
