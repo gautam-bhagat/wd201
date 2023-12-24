@@ -12,16 +12,15 @@
     "database": "todo_test",
     "host": "127.0.0.1",
     "dialect": "postgres"
-  },
+  }, 
   "production": {
     "use_env_variable": "DATABASE_URL",
-    "username": "wd_pupilfirst_user",
-    "password": "FJTkpp30R7VsW4HVLcJFLtkV5SZHvq2h",
-    "database": "wd_pupilfirst",
-    "host": "dpg-cm41bsgcmk4c73cgk20g-a.oregon-postgres.render.com",
-    "ssl": "true",
+    "dialect": "postgres",
     "dialectOptions": {
-      "ssl": true
-    }
-  }
+       "ssl": {
+         "require": true,
+         "rejectUnauthorized": false
+       }
+     }
+   }
 }
