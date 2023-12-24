@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const request = require("supertest");
 const db = require("../models/index");
 const app = require("../app");
@@ -24,5 +25,20 @@ describe("Todo Test Suite", () => {
     });
 
     expect(res.statusCode).toBe(202);
+  });
+
+  test("mark todo as completed", async () => {
+    let res = await agent.post("/todos").send({
+      title: "title",
+      dueDate: new Date().toISOString(),
+      completed: false,
+    });
+
+    expect(res.statusCode).toBe(202);
+    let parsedResponse = JSON.parse(res.text);
+    const id = parsedResponse.id;
+    res = await agent.put(`/todos/${id}/markAsCompleted`).send();
+    parsedResponse = JSON.parse(res.text);
+    expect(parsedResponse.completed).toBe(true);
   });
 });
