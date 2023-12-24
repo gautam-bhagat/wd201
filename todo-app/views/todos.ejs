@@ -1,0 +1,26 @@
+<table>
+
+        <tr class="t-header">
+        <th>Sr.no</th>
+        <th>Title</th>
+        <th>Due Date </th>
+        <th>Status</th>
+        </tr>
+
+          <tbody>
+                <% for(let i=0;i< todos.length ;i++){  %>
+                    <tr>
+                        <td> <%= (i+1) %></td>
+                    <td>
+                        <%= todos[i].title %>
+                    </td><td>
+                        <%= todos[i].dueDate %>
+                    </td><td>
+                        <%= todos[i].completed %>
+                    </td>
+                </tr>
+                    <% }%>
+
+                </tbody>
+           
+        </table>

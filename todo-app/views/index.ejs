@@ -7,22 +7,12 @@
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    <!-- <%-  include("navbar.ejs") %> -->
+    <%-  include("header.ejs") %>
+    <%-  include("todos.ejs") %>
 
-    <table>
+  
 
-      
-            <% for(let i=0;i< todos.length ;i++){  %>
-                <tr>
-                <td>
-                    <%= todos[i].title %>
-                </td><td>
-                    <%= todos[i].dueDate %>
-                </td>
-            </tr>
-                <% }%>
-       
-    </table>
+    <%-  include("footer.ejs") %>
    
 </body>
 </html>
