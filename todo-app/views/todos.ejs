@@ -2,13 +2,13 @@
      
            <div>
             <h5>
-              <%= title %> <span class="bg-gray-100 ml-2 px-2"><%= data.length %></span>
+              <%= title %> <span id="<%= indicatorId %>" class="bg-gray-100 ml-2 px-2"><%= data.length %></span>
             </h5>
             <ul class="list-none">
               <% for(var i = 0; i < data.length; i++) { %>
-              <li class="todo-item">
+              <li class="Todo-Item">
                 <div class="flex items-center w-fit ml-2 py-1 px-2 my-1 todoItem bg-rounded hover:bg-purple-100">
-                  <input type="checkbox" id="<%= data[i].id %>" <%= data[i].completed ?"checked" : "" %> onclick="markTodo(<%= data[i].id %>)" class="w-4 h-4 bg-gray-100 text-blue-100" />
+                  <input type="checkbox" id="<%= data[i].id %>" <%= data[i].completed ?"checked" : "" %> onclick="markTodo(<%= data[i].id %>,<%= !data[i].completed %>)" class="w-4 h-4 bg-gray-100 text-blue-100" />
                   <label for="<%= data[i].id %>"  class="ml-2 text-sm text-gray-600 curser-pointer">
                     <%= data[i].title %>
                   </label>

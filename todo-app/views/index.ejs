@@ -7,15 +7,16 @@
     <title>Todo</title>
 <script>
     let token = document.querySelector('meta[name="csrf-token"]').getAttribute("content")
-    const markTodo = (id) => {
-        
-          fetch(`/todos/${id}/markasCompleted`, {
+    const markTodo = (id,value) => {
+        console.log(value)
+          fetch(`/todos/${id}`, {
             method: "PUT",
             headers: {
             "Content-Type": "application/json",
             },
             body : JSON.stringify({
-                _csrf : token
+                _csrf : token,
+                completed : value
             })
            
           })
@@ -58,9 +59,10 @@
             <div><button type="submit" class="m-2  text-white rounded px-5 py-2 bg-green-700">Add</button></div>
         </div>
        </form>
-    <%- include('todos.ejs', {title: "Overdue", data: overdue, indicatorId : ""}) %>
-    <%- include('todos.ejs', {title: "Due Today", data: duetoday,indicatorId : ""}) %>
-    <%- include('todos.ejs', {title: "Due Later", data: duelater,indicatorId : ""}) %>
+    <%- include('todos.ejs', {title: "Overdue", data: overdue, indicatorId : "count-overdue"}) %>
+    <%- include('todos.ejs', {title: "Due Today", data: duetoday,indicatorId : "count-due-today"}) %>
+    <%- include('todos.ejs', {title: "Due Later", data: duelater,indicatorId : "count-due-later"}) %>
+    <%- include('todos.ejs', {title: "Completed Items", data: completedtodo ,indicatorId : "count-completed"}) %>
    
   </body>
 </html>

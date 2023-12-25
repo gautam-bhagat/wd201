@@ -18,8 +18,8 @@ module.exports = (sequelize, DataTypes) => {
       return this.create({ title, dueDate, completed: false });
     }
 
-    markAsCompleted() {
-      return this.update({ completed: true });
+    setCompletionStatus(value) {
+      return this.update({ completed: value });
     }
   }
   Todo.init(

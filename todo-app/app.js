@@ -25,13 +25,17 @@ app.get("/", async (request, response) => {
 
   const todos = await Todo.findAll();
   const overdue = todos.filter((item) => {
-    return item.dueDate < d;
+    return item.dueDate < d && item.completed === false;
   });
   const duetoday = todos.filter((item) => {
-    return item.dueDate === d;
+    return item.dueDate === d && item.completed === false;
   });
   const duelater = todos.filter((item) => {
-    return item.dueDate > d;
+    return item.dueDate > d && item.completed === false;
+  });
+
+  const completedtodo = todos.filter((item) => {
+    return item.completed;
   });
   if (request.accepts("html")) {
     return response.render("index", {
@@ -39,10 +43,11 @@ app.get("/", async (request, response) => {
       overdue,
       duetoday,
       duelater,
+      completedtodo,
       csrfToken: request.csrfToken(),
     });
   } else {
-    return response.json({ todos, overdue, duetoday, duelater });
+    return response.json({ todos, overdue, duetoday, duelater, completedtodo });
   }
 });
 
@@ -60,11 +65,12 @@ app.post("/todos", async (req, res) => {
   }
 });
 
-app.put("/todos/:id/markAsCompleted", async (req, res) => {
+app.put("/todos/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const todo = await Todo.findByPk(id);
-    const updateTodo = await todo.markAsCompleted();
+    const { completed } = req.body;
+    const updateTodo = await todo.setCompletionStatus(completed);
     return res.json(updateTodo);
   } catch (error) {
     return res.status(422);
