@@ -5,10 +5,16 @@ const app = express();
 
 // const port = 4000;
 
-const { Todo } = require("./models");
+const { Todo, User } = require("./models");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const passport = require("passport");
+const connectEnsureLogin = require("connect-ensure-login");
+const session = require("express-session");
+const LocalStrategy = require("passport-local");
 const csrf = require("csurf");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
@@ -20,36 +26,153 @@ app.set("view engine", "ejs");
 const path = require("path");
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/", async (request, response) => {
-  const d = new Date().toISOString().substring(0, 10);
+app.use(
+  session({
+    secret: "my-super-secret-key-21728172615261562",
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, //24hours
+    },
+  }),
+);
+app.use(passport.initialize());
+app.use(passport.session());
+// app.use(function (request, response, next) {
+//   response.locals.messages = request.flash();
+//   next();
+// });
 
-  const todos = await Todo.findAll();
-  const overdue = todos.filter((item) => {
-    return item.dueDate < d && item.completed === false;
-  });
-  const duetoday = todos.filter((item) => {
-    return item.dueDate === d && item.completed === false;
-  });
-  const duelater = todos.filter((item) => {
-    return item.dueDate > d && item.completed === false;
-  });
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+    },
+    (username, password, done) => {
+      User.findOne({ where: { email: username } })
+        .then(async function (user) {
+          const result = await bcrypt.compare(password, user.password);
+          if (result) {
+            console.log("Loggedd In", user);
+            return done(null, user);
+          } else {
+            return done(null, false, { message: "Invalid password" });
+          }
+        })
+        .catch(() => {
+          return done(null, false, {
+            message: "Account doesn't exist for this mail",
+          });
+        });
+    },
+  ),
+);
 
-  const completedtodo = todos.filter((item) => {
-    return item.completed;
-  });
-  if (request.accepts("html")) {
-    return response.render("index", {
-      todos,
-      overdue,
-      duetoday,
-      duelater,
-      completedtodo,
-      csrfToken: request.csrfToken(),
+passport.serializeUser((user, done) => {
+  console.log("Serializing user in session", user.id);
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  User.findByPk(id)
+    .then((user) => {
+      done(null, user);
+    })
+    .catch((error) => {
+      done(error, null);
     });
-  } else {
-    return response.json({ todos, overdue, duetoday, duelater, completedtodo });
+});
+
+app.get("/signup", (req, res) => {
+  if (req.accepts("html")) {
+    return res.render("signup", {
+      csrfToken: req.csrfToken(),
+    });
   }
 });
+
+app.post("/users", async (req, res) => {
+  try {
+    let { firstName, lastName, email, password } = req.body;
+    password = bcrypt.hashSync(password, saltRounds);
+    const user = await User.create({ firstName, lastName, email, password });
+    console.log(user);
+    req.login(user, (err) => {
+      if (err) {
+        return console.log(err);
+      }
+
+      res.redirect("/todos");
+    });
+  } catch (error) {
+    res.status(422).send(error);
+  }
+});
+
+app.get("/login", (req, res) => {
+  if (req.accepts("html")) {
+    return res.render("login", {
+      csrfToken: req.csrfToken(),
+    });
+  }
+});
+
+app.post(
+  "/session",
+  passport.authenticate("local", { failureRedirect: "/login" }),
+  (req, res) => {
+    console.log(req.user);
+    res.redirect("/todos");
+  },
+);
+
+app.get("/", (req, res) => {
+  if (req.accepts("html")) {
+    return res.render("index", {
+      csrfToken: req.csrfToken(),
+    });
+  }
+});
+
+app.get(
+  "/todos",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    const d = new Date().toISOString().substring(0, 10);
+
+    const todos = await Todo.findAll();
+    const overdue = todos.filter((item) => {
+      return item.dueDate < d && item.completed === false;
+    });
+    const duetoday = todos.filter((item) => {
+      return item.dueDate === d && item.completed === false;
+    });
+    const duelater = todos.filter((item) => {
+      return item.dueDate > d && item.completed === false;
+    });
+
+    const completedtodo = todos.filter((item) => {
+      return item.completed;
+    });
+    if (request.accepts("html")) {
+      return response.render("todos", {
+        todos,
+        overdue,
+        duetoday,
+        duelater,
+        completedtodo,
+        csrfToken: request.csrfToken(),
+      });
+    } else {
+      return response.json({
+        todos,
+        overdue,
+        duetoday,
+        duelater,
+        completedtodo,
+      });
+    }
+  },
+);
 
 app.post("/todos", async (req, res) => {
   try {
@@ -77,30 +200,30 @@ app.put("/todos/:id", async (req, res) => {
   }
 });
 
-app.get("/todos", async function (_request, response) {
-  console.log("Processing list of all Todos ...");
-  try {
-    const d = new Date().toISOString().substring(0, 10);
-    console.log(d);
-    const todos = await Todo.findAll();
-    const overdue = todos.filter((item) => {
-      return item.dueDate < d;
-    });
-    const duetoday = todos.filter((item) => {
-      return item.dueDate === d;
-    });
-    const duelater = todos.filter((item) => {
-      return item.dueDate > d;
-    });
-    console.log("OverDue", JSON.stringify(overdue));
-    console.log("DueToday", JSON.stringify(duetoday));
-    console.log("DueLater", JSON.stringify(duelater));
+// app.get("/todos", async function (_request, response) {
+//   console.log("Processing list of all Todos ...");
+//   try {
+//     const d = new Date().toISOString().substring(0, 10);
+//     console.log(d);
+//     const todos = await Todo.findAll();
+//     const overdue = todos.filter((item) => {
+//       return item.dueDate < d;
+//     });
+//     const duetoday = todos.filter((item) => {
+//       return item.dueDate === d;
+//     });
+//     const duelater = todos.filter((item) => {
+//       return item.dueDate > d;
+//     });
+//     console.log("OverDue", JSON.stringify(overdue));
+//     console.log("DueToday", JSON.stringify(duetoday));
+//     console.log("DueLater", JSON.stringify(duelater));
 
-    return response.send(todos);
-  } catch (error) {
-    response.status(422).send(error);
-  }
-});
+//     return response.send(todos);
+//   } catch (error) {
+//     response.status(422).send(error);
+//   }
+// });
 
 app.get("/todos/:id", async function (request, response) {
   try {
