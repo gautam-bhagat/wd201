@@ -7,9 +7,13 @@ const app = express();
 
 const { Todo } = require("./models");
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const csrf = require("csurf");
 
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser("Secret_Token"));
+app.use(csrf({ cookie: true }));
 
 app.set("view engine", "ejs");
 
@@ -30,9 +34,15 @@ app.get("/", async (request, response) => {
     return item.dueDate > d;
   });
   if (request.accepts("html")) {
-    return response.render("index", { todos, overdue, duetoday, duelater });
+    return response.render("index", {
+      todos,
+      overdue,
+      duetoday,
+      duelater,
+      csrfToken: request.csrfToken(),
+    });
   } else {
-    return response.json({ todos });
+    return response.json({ todos, overdue, duetoday, duelater });
   }
 });
 

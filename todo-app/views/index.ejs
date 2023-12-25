@@ -3,15 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="<%= csrfToken %>" />
     <title>Todo</title>
 <script>
-const markTodo = (id) => {
+    let token = document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+    const markTodo = (id) => {
         
           fetch(`/todos/${id}/markasCompleted`, {
             method: "PUT",
             headers: {
             "Content-Type": "application/json",
             },
+            body : JSON.stringify({
+                _csrf : token
+            })
            
           })
           .then((res) => {
@@ -28,7 +33,10 @@ const markTodo = (id) => {
                 method :"delete",
                 headers : {
                     "Content-Type": "application/json",
-                }
+                },
+            body : JSON.stringify({
+                _csrf : token
+            })
             }).then(res=>{
                 if(res.ok){
                     window.location.reload();
@@ -44,6 +52,7 @@ const markTodo = (id) => {
     <%- include("header.ejs") %>
     <form action="/todos" method="post" >
         <div class="flex items-center w-full">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>
             <div><input name="title" placeholder="What's Next?" required  class="border-2 border-gray-500  m-2 p-2 border-zinc-950 rounded" type="text" /></div>
             <div><input name="dueDate" type="date" required class="m-2 border-2 border-gray-500  p-2 rounded"/></div>
             <div><button type="submit" class="m-2  text-white rounded px-5 py-2 bg-green-700">Add</button></div>
