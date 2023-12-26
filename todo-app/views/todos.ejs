@@ -64,6 +64,10 @@
     <%- include('todo.ejs', {title: "Due Today", data: duetoday,indicatorId : "count-due-today"}) %>
     <%- include('todo.ejs', {title: "Due Later", data: duelater,indicatorId : "count-due-later"}) %>
     <%- include('todo.ejs', {title: "Completed Items", data: completedtodo ,indicatorId : "count-completed"}) %>
-   
+    <% if(messages && messages.error && messages.error.length > 0)  { %>
+      <% for(var i=0; i<messages.error.length; i++) { %>
+        <p class="bg-red-200 my-3 list-none rounded px-4 py-2"><%= messages.error[i] %></p>
+      <% } %>
+    <% } %>
   </body>
 </html>

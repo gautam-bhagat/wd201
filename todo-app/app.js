@@ -39,10 +39,10 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-// app.use(function (request, response, next) {
-//   response.locals.messages = request.flash();
-//   next();
-// });
+app.use(function (request, response, next) {
+  response.locals.messages = request.flash();
+  next();
+});
 
 passport.use(
   new LocalStrategy(
@@ -94,6 +94,19 @@ app.get("/signup", (req, res) => {
 });
 
 app.post("/users", async (req, res) => {
+  if (req.body.email.length == 0) {
+    req.flash("error", "Email can not be empty!");
+    return res.redirect("/signup");
+  }
+
+  if (req.body.firstName.length == 0) {
+    req.flash("error", "First name can not be empty!");
+    return res.redirect("/signup");
+  }
+  if (req.body.password.length < 8) {
+    request.flash("error", "Password length should be minimun 8");
+    return res.redirect("/signup");
+  }
   try {
     let { firstName, lastName, email, password } = req.body;
     password = bcrypt.hashSync(password, saltRounds);
@@ -191,6 +204,18 @@ app.get(
 );
 
 app.post("/todos", async (req, res) => {
+  if (req.body.title.length === 0) {
+    req.flash("error", "Title can not be empty!");
+    return res.redirect("/todos");
+  }
+  if (req.body.title.length < 5) {
+    req.flash("error", "Title Length must be 5 or greater than 5");
+    return res.redirect("/todos");
+  }
+  if (req.body.dueDate.length == 0) {
+    req.flash("error", "Due date can not be empty!");
+    return res.redirect("/todos");
+  }
   try {
     // console.log(req.body)
 
