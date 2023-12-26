@@ -44,6 +44,24 @@
                 }
             })
         }
+        
+        const logout = ()=>{
+            fetch(`/signout`,{
+                method :"get",
+                headers : {
+                    "Content-Type": "application/json",
+                },
+            body : JSON.stringify({
+                _csrf : token
+            })
+            }).then(res=>{
+                if(res.ok){
+                    window.location.reload();
+                }
+            })
+        }
+
+
 </script>
 
     <link rel="stylesheet" href="./css/styles.css" />
@@ -51,7 +69,10 @@
   </head>
   <body>
     <%- include("header.ejs") %>
-    <a href="/signout">Sign out </a>
+    <form action="/signout" method="get">
+      <button class="m-5 p-2 rounded text-white bg-red-600" type="submit" >signout</button>
+    </form>
+   
     <form action="/todos" method="post" >
         <div class="flex items-center w-full">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>

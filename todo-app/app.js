@@ -154,6 +154,9 @@ app.get("/signout", (req, res, next) => {
 });
 
 app.get("/", (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.redirect("/todos");
+  }
   if (req.accepts("html")) {
     return res.render("index", {
       csrfToken: req.csrfToken(),
