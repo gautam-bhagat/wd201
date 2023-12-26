@@ -211,10 +211,10 @@ app.post("/todos", async (req, res) => {
     req.flash("error", "Title can not be empty!");
     return res.redirect("/todos");
   }
-  if (req.body.title.length < 5) {
-    req.flash("error", "Title Length must be 5 or greater than 5");
-    return res.redirect("/todos");
-  }
+  // if (req.body.title.length < 5) {
+  //   req.flash("error", "Title Length must be 5 or greater than 5");
+  //   return res.redirect("/todos");
+  // }
   if (req.body.dueDate.length == 0) {
     req.flash("error", "Due date can not be empty!");
     return res.redirect("/todos");
