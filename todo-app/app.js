@@ -14,16 +14,19 @@ const session = require("express-session");
 const LocalStrategy = require("passport-local");
 const csrf = require("csurf");
 const bcrypt = require("bcrypt");
+const flash = require("connect-flash");
 const saltRounds = 10;
 
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser("Secret_Token"));
 app.use(csrf({ cookie: true }));
+app.use(flash());
 
 app.set("view engine", "ejs");
 
 const path = require("path");
+app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
@@ -52,7 +55,7 @@ passport.use(
         .then(async function (user) {
           const result = await bcrypt.compare(password, user.password);
           if (result) {
-            console.log("Loggedd In", user);
+            // console.log("Loggedd In", user);
             return done(null, user);
           } else {
             return done(null, false, { message: "Invalid password" });
@@ -118,12 +121,24 @@ app.get("/login", (req, res) => {
 
 app.post(
   "/session",
-  passport.authenticate("local", { failureRedirect: "/login" }),
-  (req, res) => {
-    console.log(req.user);
-    res.redirect("/todos");
+  passport.authenticate("local", {
+    failureRedirect: "/login",
+    failureFlash: true,
+  }),
+  function (request, response) {
+    console.log(request.user);
+    response.redirect("/todos");
   },
 );
+
+app.get("/signout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/");
+  });
+});
 
 app.get("/", (req, res) => {
   if (req.accepts("html")) {
@@ -139,7 +154,8 @@ app.get(
   async (request, response) => {
     const d = new Date().toISOString().substring(0, 10);
 
-    const todos = await Todo.findAll();
+    const userId = request.user.id;
+    const todos = await Todo.findAll({ where: { userId: userId } });
     const overdue = todos.filter((item) => {
       return item.dueDate < d && item.completed === false;
     });
@@ -177,11 +193,15 @@ app.get(
 app.post("/todos", async (req, res) => {
   try {
     // console.log(req.body)
-    const { title, dueDate } = req.body;
-    console.log({ title, dueDate, completed: false });
 
-    const todo = await Todo.addTodo({ title, dueDate });
-    return res.redirect("/");
+    const { title, dueDate } = req.body;
+    const userId = req.user.id;
+
+    // console.log({ title, dueDate, completed: false });
+
+    const todo = await Todo.addTodo({ userId, title, dueDate });
+    console.log(todo);
+    return res.redirect("/todos");
   } catch (error) {
     console.log(error);
     return res.status(422).json(error);
@@ -200,31 +220,6 @@ app.put("/todos/:id", async (req, res) => {
   }
 });
 
-// app.get("/todos", async function (_request, response) {
-//   console.log("Processing list of all Todos ...");
-//   try {
-//     const d = new Date().toISOString().substring(0, 10);
-//     console.log(d);
-//     const todos = await Todo.findAll();
-//     const overdue = todos.filter((item) => {
-//       return item.dueDate < d;
-//     });
-//     const duetoday = todos.filter((item) => {
-//       return item.dueDate === d;
-//     });
-//     const duelater = todos.filter((item) => {
-//       return item.dueDate > d;
-//     });
-//     console.log("OverDue", JSON.stringify(overdue));
-//     console.log("DueToday", JSON.stringify(duetoday));
-//     console.log("DueLater", JSON.stringify(duelater));
-
-//     return response.send(todos);
-//   } catch (error) {
-//     response.status(422).send(error);
-//   }
-// });
-
 app.get("/todos/:id", async function (request, response) {
   try {
     const todo = await Todo.findByPk(request.params.id);
@@ -241,6 +236,7 @@ app.delete("/todos/:id", async function (request, response) {
     const dData = await Todo.destroy({
       where: {
         id: request.params.id,
+        userId: request.user.id,
       },
     });
     console.log(dData);
