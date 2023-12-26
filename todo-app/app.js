@@ -104,7 +104,7 @@ app.post("/users", async (req, res) => {
     return res.redirect("/signup");
   }
   if (req.body.password.length < 8) {
-    request.flash("error", "Password length should be minimun 8");
+    req.flash("error", "Password length should be minimun 8");
     return res.redirect("/signup");
   }
   try {
