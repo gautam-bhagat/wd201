@@ -186,7 +186,7 @@ app.get(
       return item.completed;
     });
     if (request.accepts("html")) {
-      return response.render("todos", {
+      return response.render("todo", {
         todos,
         overdue,
         duetoday,
