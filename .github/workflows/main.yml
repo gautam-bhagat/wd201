@@ -1,7 +1,7 @@
-name: Auto test L10 solution
+name: Unit Testing for Todo App
 on: push
 env:
-  PG_DATABASE: wd-todo-test
+  PG_DATABASE: todo_test
   PG_USER: postgres
   PG_PASSWORD: postgres
 jobs:
@@ -41,7 +41,7 @@ jobs:
         run: cd todo-app && npm ci
 
       - name: Run unit tests
-        run: cd l10 && npm test
+        run: cd todo-app && npm test
       - name: Run the app
         id: run-app
         run: |
