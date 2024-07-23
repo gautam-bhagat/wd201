@@ -1,3 +1,5 @@
 models
 migrations
 __tests__
+cypress
+cypress.config.js
