@@ -60,17 +60,4 @@ jobs:
           cd todo-app
           npm install cypress cypress-json-results
           npx cypress run --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
-
-          - name: Notify Slack
-          run: |
-            # Determine the status of the tests
-            if [ ${{ job.status }} == 'success' ]; then
-              MESSAGE="Unit and integration tests succeeded for commit ${{ github.sha }}"
-            else
-              MESSAGE="Unit and integration tests failed for commit ${{ github.sha }}"
-            fi
-            
-            # Send the notification
-            curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"$MESSAGE\"}" \
-            ${{ secrets.SLACK_WEBHOOK_URL }}
+      
