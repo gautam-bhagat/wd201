@@ -1,0 +1,79 @@
+name: CI/CD Pipeline for Todo App
+
+on: [push]
+
+env:
+  PG_DATABASE: todo_test
+  PG_USER: postgres
+  PG_PASSWORD: postgres
+  PORT: 3000
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: todo-test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: docker build --target production -t todo-app:latest .
+
+      - name: Run unit tests
+        run: |
+         docker run --rm -d \
+            --env DB_HOST=localhost \
+            --env DB_PORT=5432 \
+            --env DB_USER=postgres \
+            --env DB_PASSWORD=postgres \
+            --env DB_NAME=todo_test \
+            todo-app:latest npm test
+
+      - name: Run integration tests
+        run: |
+          docker run --rm -d \
+            --env DB_HOST=localhost \
+            --env DB_PORT=5432 \
+            --env DB_USER=postgres \
+            --env DB_PASSWORD=postgres \
+            --env DB_NAME=todo_test \
+            -p 3000:3000 \
+            todo-app:latest npm run start &
+          sleep 10
+          docker run --rm cypress/included:9.5.1 npx cypress run --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
+
+      - name: Notify Slack
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = process.env.GITHUB_RUN_STATUS;
+            const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+            const message = {
+              text: `Deployment Status: ${status}\nBranch: ${process.env.GITHUB_REF_NAME}\nCommit: ${process.env.GITHUB_SHA}`
+            };
+            await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(message)
+            });
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+

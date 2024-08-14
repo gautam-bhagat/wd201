@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: todo-app:test
+    env_file:
+      - .env.test
+    depends_on:
+      - db
+    environment:
+      DB_USERNAME: $DB_USERNAME
+      DB_PASSWORD: $DB_PASSWORD
+      DB_DATABASE: $DB_DATABASE
+      DB_HOST: $DB_HOST
+      DB_DIALECT: $DB_DIALECT
+
+  db:
+    image: postgres:15
+    volumes:
+      - pg-test-data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: $DB_USERNAME
+      POSTGRES_DB: $DB_DATABASE
+      POSTGRES_PASSWORD: $DB_PASSWORD
+
+volumes:
+  pg-test-data:

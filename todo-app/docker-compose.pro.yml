@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: todo-app:production
+    env_file:
+      - .env.production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    volumes:
+      - pg-prod-data:/var/lib/postgresql/data
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_USER: $DB_USERNAME
+      POSTGRES_DB: $DB_DATABASE
+      POSTGRES_PASSWORD: $DB_PASSWORD
+
+volumes:
+  pg-prod-data:
